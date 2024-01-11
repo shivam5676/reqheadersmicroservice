@@ -1,36 +1,32 @@
 const express = require("express");
-
+const cors=require("cors")
 const requestIp = require("request-ip");
 
 // inside middleware handler
 
 const app = express();
-var ipMiddleware = function(req, res, next) {
-    const clientIp = requestIp.getClientIp(req); 
-    next();
-   };
-   //As Connect Middleware
-   app.use(requestIp.mw())
-app.get("/api/whoami", (req, res) => {
-//   const ipAddress = req.clientIp;
-  const language = req.headers["accept-language"];
-//   const software = req.headers["user-agent"];
-//   console.log(req.headers);
-//   res.json({
-//     ipaddress: ipAddress,
-//     language: language,
-//     software: software,
-//   });
+app.use(cors({origin:"*"}))
 
-    var ipadress = req.clientIp;
-    // var language = req.acceptsLanguages();
-    var software=req.get('User-Agent');
-     res.json({
-     ipaddress: ipadress,
-     language:language,
-     software:software
-     });
-    
+
+// Middleware to get client IP address
+const ipMiddleware = function (req, res, next) {
+  req.clientIp = requestIp.getClientIp(req);
+  next();
+};
+
+// Add the IP middleware to the stack
+app.use(ipMiddleware);
+
+app.get("/api/whoami", (req, res) => {
+  const language = req.headers["accept-language"];
+  const ipaddress = req.clientIp;
+  const software = req.get('User-Agent');
+
+  res.json({
+    ipaddress: ipaddress,
+    language: language,
+    software: software
+  });
 });
 
 const PORT = process.env.PORT || 3000;
